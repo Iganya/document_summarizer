@@ -89,6 +89,8 @@ MYSQL_PASSWORD=your_password
 MYSQL_HOST=your_hostname
 MYSQL_PORT=your_mysql_port
 MYSQL_DB=your_db_name
+DATABASE_URL=mysql+pymysql://your_user_name:your_password@your_hostname:your_mysql_port/your_db_name
+
 
 # Amazon S3 Configuration
 S3_BUCKET=your_bucket_name
