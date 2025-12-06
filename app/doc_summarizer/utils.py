@@ -1,6 +1,17 @@
 from docx import Document
 from io import BytesIO
+from PyPDF2 import PdfReader
 
+
+
+
+def extract_pdf_text(content: bytes) ->str:
+    extracted_text = ""
+    pdf_reader = PdfReader(BytesIO(content))
+    for page in pdf_reader.pages:
+        extracted_text += page.extract_text() + "\n"
+
+    return extracted_text
 
 
 def extract_docx_text(content: bytes) -> str:

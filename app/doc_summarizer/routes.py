@@ -2,17 +2,16 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Path
 from botocore.exceptions import NoCredentialsError
 from datetime import datetime
 from sqlalchemy.orm import Session
-from PyPDF2 import PdfReader
-from groq import Groq
 import boto3
 from io import BytesIO
+from openai import OpenAI
 import json
 from uuid import UUID
 from app.core.db import get_db
 from app.core.config import get_settings, logger
 from .models import DocumentBase
 from .schemas import DocumentUploadResponse, AnalysisResponse, DocumentResponse
-from .utils import extract_docx_text
+from .utils import extract_docx_text, extract_pdf_text
 
 
 
@@ -25,10 +24,21 @@ s3_client = boto3.client(
         aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY
     )
 
-# Groq API setup 
-groq_client = Groq(api_key=config.GROQ_API_KEY)
+
+openrouter_client = OpenAI(
+  base_url="https://openrouter.ai/api/v1",
+  api_key=config.OPENROUTER_API_KEY,
+)
 
 
+
+async def s3_bucket_upload(s3_key, content):
+    try:
+        s3_client.put_object(Bucket=config.S3_BUCKET, Key=s3_key, Body=content)
+    except NoCredentialsError:
+        raise HTTPException(status_code=500, detail="S3 credentials not configured.")
+    
+   
 
 @router.post("/documents/upload", response_model=DocumentUploadResponse)
 async def upload_document(
@@ -44,20 +54,15 @@ async def upload_document(
     if len(content) > 5 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File size exceeds 5MB limit.")
     
-    # Store in S3
+    # Store in S3 
     file_name = file.filename
     s3_key = f"documents/{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file_name}"
-    try:
-        s3_client.put_object(Bucket=config.S3_BUCKET, Key=s3_key, Body=content)
-    except NoCredentialsError:
-        raise HTTPException(status_code=500, detail="S3 credentials not configured.")
-    
+    await s3_bucket_upload(s3_key, content)
+ 
     # Extract text
     extracted_text = ""
     if file.content_type == "application/pdf":
-        pdf_reader = PdfReader(BytesIO(content))
-        for page in pdf_reader.pages:
-            extracted_text += page.extract_text() + "\n"
+        extracted_text = extract_pdf_text(content)
         file_type = "pdf"
     else:  # DOCX
         extracted_text = extract_docx_text(content)
@@ -133,19 +138,17 @@ async def analyze_document(
             }}
         """
     try:
-        chat_completion = groq_client.chat.completions.create(
+        chat_completion = openrouter_client.chat.completions.create(
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            model="llama-3.1-8b-instant",  # Free model on Groq
-            temperature=0.1,
-            max_tokens=500
-        )
+            )
         llm_response = chat_completion.choices[0].message.content
         logger.info("llm response", llm_response=llm_response)
 
-        # Parse JSON response (simple, assume well-formed)
+        # Parse JSON response 
         parsed = json.loads(llm_response)
         summary = parsed.get("summary", "")
         doc_type = parsed.get("doc_type", "")

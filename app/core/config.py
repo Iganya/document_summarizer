@@ -28,10 +28,8 @@ class Settings(BaseSettings):
     S3_BUCKET: str = os.getenv("S3_BUCKET", "documents")
     AWS_ACCESS_KEY_ID: str =os.getenv("AWS_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY: str =os.getenv("AWS_SECRET_ACCESS_KEY")
-    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY")
+    OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY")
 
-
-    # S3_ENDPOINT = os.getenv("S3_ENDPOINT", "http://localhost:9000")  # For Minio
     
     
 

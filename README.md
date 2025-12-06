@@ -2,8 +2,8 @@
 
 ## AI Document Summarization & Metadata Extraction API
 
-FastAPI + Groq (Free Tier) + Minio/S3 + SQLite/PostgreSQL
-A production-ready service that accepts PDF or DOCX files, extracts text, stores them securely, and uses Groq's blazing-fast free LLMs (Llama 3 8B/70B) to generate:
+FastAPI + Openrouter + S3 + MySQL
+A production-ready service that accepts PDF or DOCX files, extracts text, stores them securely, and uses gpt-4o-min llm model on openrouter to generate:
 - Concise summary (2–3 sentences)
 - Document type classification (invoice, CV/resume, contract, report, letter, etc.)
 - Structured metadata extraction (date, sender, recipient, total amount, invoice number, e
@@ -75,3 +75,27 @@ curl http://localhost:8000/documents/1
    uvicorn app.main:app --host 0.0.0.0 --port 8000
    ```
 5. Access the API at `http://127.0.0.1:8000/`
+
+
+
+## Environment Variables
+
+Create a `.env` file in the project root and configure the following variables:
+
+```env
+# Database
+MYSQL_USER=your_user_name
+MYSQL_PASSWORD=your_password
+MYSQL_HOST=your_hostname
+MYSQL_PORT=your_mysql_port
+MYSQL_DB=your_db_name
+
+# Amazon S3 Configuration
+S3_BUCKET=your_bucket_name
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+
+# OpenRouter API
+OPENROUTER_API_KEY=your_api_key
+```
+
