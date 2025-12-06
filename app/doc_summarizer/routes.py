@@ -3,7 +3,6 @@ from botocore.exceptions import NoCredentialsError
 from datetime import datetime
 from sqlalchemy.orm import Session
 import boto3
-from io import BytesIO
 from openai import OpenAI
 import json
 from uuid import UUID

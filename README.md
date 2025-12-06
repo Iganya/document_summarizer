@@ -23,17 +23,17 @@ curl -X POST "http://localhost:8000/documents/upload" \
 ```
 ### 2. Analyze
 ```bash
-curl -X POST "http://localhost:8000/documents/1/analyze"
+curl -X POST "http://localhost:8000/documents/a7c0af3d-92b7-4e24-97bb-03d22005d3cf/analyze"
 ```
 
 ### 3. Retrieve everything
 ```bash
-curl http://localhost:8000/documents/1
+curl http://localhost:8000/documents/a7c0af3d-92b7-4e24-97bb-03d22005d3cf
 ```
 ### Sample response
 ```bash
 {
-  "id": 1,
+  "id": a7c0af3d-92b7-4e24-97bb-03d22005d3cf,
   "file_name": "invoice.pdf",
   "summary": "Invoice from ACME Corp to John Doe for web development services totaling $4,250. Payment due by Dec 30, 2025.",
   "doc_type": "invoice",
@@ -45,7 +45,7 @@ curl http://localhost:8000/documents/1
     "total_amount": 4250.00,
     "currency": "USD",
     "due_date": "2025-12-30"
-  }
+   }
 }
 ```
 
