@@ -3,7 +3,6 @@ from botocore.exceptions import NoCredentialsError
 from datetime import datetime
 from sqlalchemy.orm import Session
 from PyPDF2 import PdfReader
-from docx import Document
 from groq import Groq
 import boto3
 from io import BytesIO
@@ -31,7 +30,6 @@ groq_client = Groq(api_key=config.GROQ_API_KEY)
 
 
 
-
 @router.post("/documents/upload", response_model=DocumentUploadResponse)
 async def upload_document(
     file: UploadFile = File(...),
@@ -46,7 +44,7 @@ async def upload_document(
     if len(content) > 5 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File size exceeds 5MB limit.")
     
-    # Store in S3/Minio
+    # Store in S3
     file_name = file.filename
     s3_key = f"documents/{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file_name}"
     try:
@@ -62,14 +60,10 @@ async def upload_document(
             extracted_text += page.extract_text() + "\n"
         file_type = "pdf"
     else:  # DOCX
-        extracted_text += extract_docx_text(content)
-        print()
-        # doc = Document(BytesIO(content))
-        # print("doc is", doc.paragraphs)
-        # for paragraph in doc.paragraphs:
-        #     extracted_text += paragraph.text + "\n"
+        extracted_text = extract_docx_text(content)
         file_type = "docx"
     logger.info("Text extracted", extracted_text=extracted_text)
+
     # Save to DB
     db_doc = DocumentBase(
         file_name=file_name,
